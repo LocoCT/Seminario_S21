@@ -1,4 +1,4 @@
-# Sistema de Gestión Mayorista
+# Sistema de Gestión Distribuidora Mayorista
 
 Aplicación de escritorio en **Java (Swing)** para la gestión de una distribuidora mayorista. Permite administrar clientes, productos, órdenes de venta, facturación y cobros, y el control de stock en depósitos.
 
@@ -82,5 +82,5 @@ La pantalla de login se abre con las credenciales de `Admin` precargadas.
 
 ## Autor
 
-**[Nombre y apellido]** – Legajo [Legajo]
+**Federico Catena**
 Seminario de Práctica de Informática
