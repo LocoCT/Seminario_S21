@@ -50,19 +50,18 @@ public class CampoMoneda extends JTextField {
     }
 
     // Versiones con double / Double (usados por los modelos Cliente, Producto, etc.)
-    public Double getMonto() {
-        BigDecimal v = getValor();
-        return v == null ? null : v.doubleValue();
+    public BigDecimal getMonto() {
+        return getValor();
     }
 
-    public void setMonto(Double monto) {
-        setValor(monto == null ? null : BigDecimal.valueOf(monto));
+    public void setMonto(BigDecimal monto) {
+        setValor(monto);
     }
 
     // Método de conveniencia para controladores: devuelve valor primitivo double (0.0 si está vacío)
-    public double getValorNumerico() {
-        Double m = getMonto();
-        return m == null ? 0.0 : m;
+    public BigDecimal getValorNumerico() {
+        BigDecimal v = getValor();
+        return v == null ? BigDecimal.ZERO : v;
     }
 
     // 1234567.5 -> "1.234.567,50"
@@ -72,10 +71,6 @@ public class CampoMoneda extends JTextField {
         simbolos.setGroupingSeparator('.');
         simbolos.setDecimalSeparator(',');
         return new DecimalFormat("#,##0.00", simbolos).format(valor);
-    }
-
-    public static String formatear(double valor) {
-        return formatear(BigDecimal.valueOf(valor));
     }
 
     private void ponerTexto(String texto) {

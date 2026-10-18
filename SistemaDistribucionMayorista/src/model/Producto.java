@@ -1,17 +1,18 @@
 package model;
+import java.math.BigDecimal;
 
 public class Producto {
 
   private String codigo;
   private String descripcion;
-  private double precioBase;
-  private double costoCompra;
+  private BigDecimal precioBase;
+  private BigDecimal costoCompra;
   private int stockActual;
   private int stockMinimo;
   private CategoriaProducto categoria;
   
-// CONSTRUCTOR CORREGIDO
-    public Producto(String codigo, String descripcion, CategoriaProducto categoria, double costoCompra, double precioBase, int stockActual, int stockMinimo) {
+    // Constructor
+    public Producto(String codigo, String descripcion, CategoriaProducto categoria, BigDecimal costoCompra, BigDecimal precioBase, int stockActual, int stockMinimo) {
         this.codigo = codigo;
         this.descripcion = descripcion;
         this.categoria = categoria;
@@ -41,11 +42,11 @@ public class Producto {
   public String getDescripcion() {return descripcion;}
   public void setDescripcion(String descripcion) {this.descripcion = descripcion;}
 
-  public double getPrecioBase() {return precioBase;}
-  public void setPrecioBase(double precioBase) {this.precioBase = precioBase;}
+  public BigDecimal getPrecioBase() {return precioBase;}
+  public void setPrecioBase(BigDecimal precioBase) {this.precioBase = precioBase;}
 
-  public double getCostoCompra() {return costoCompra;}
-  public void setCostoCompra(double costoCompra) {this.costoCompra = costoCompra;}
+  public BigDecimal getCostoCompra() {return costoCompra;}
+  public void setCostoCompra(BigDecimal costoCompra) {this.costoCompra = costoCompra;}
 
   public int getStockActual() {return stockActual;}
   public void setStockActual(int stockActual) {this.stockActual = stockActual;}

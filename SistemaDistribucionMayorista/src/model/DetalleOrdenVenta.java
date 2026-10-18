@@ -1,14 +1,16 @@
 package model;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class DetalleOrdenVenta {
 
   private int cantidad;
-  private double precioUnitario;
-  private double porcentajeDescuento;
-  private double subtotal;
+  private BigDecimal precioUnitario;
+  private BigDecimal porcentajeDescuento;
+  private BigDecimal subtotal;
   private Producto producto;
 
-  public DetalleOrdenVenta(int cantidad, Producto producto, double porcentajeDescuento) {
+  public DetalleOrdenVenta(int cantidad, Producto producto, BigDecimal porcentajeDescuento) {
     this.cantidad = cantidad;
     this.precioUnitario = producto.getPrecioBase();
     this.porcentajeDescuento = porcentajeDescuento;
@@ -16,44 +18,38 @@ public class DetalleOrdenVenta {
     this.subtotal = calcularSubtotal();
   }
 
-  public double calcularSubtotal() {
-    double descuento = this.precioUnitario * (this.porcentajeDescuento / 100);
-    return (this.precioUnitario - descuento) * this.cantidad;
+  public BigDecimal calcularSubtotal() {
+    BigDecimal descuento = this.precioUnitario
+      .multiply(this.porcentajeDescuento)
+      .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    this.subtotal = this.precioUnitario.subtract(descuento)
+      .multiply(BigDecimal.valueOf(this.cantidad))
+      .setScale(2, RoundingMode.HALF_UP);
+    return this.subtotal;
   }
 
-  public int getCantidad() {
-    return cantidad;
-  }
-
-  public double getPrecioUnitario() {
-    return precioUnitario;
-  }
-
-  public double getPorcentajeDescuento() {
-    return porcentajeDescuento;
-  }
-
-  public double getSubtotal() {
-    return subtotal;
-  }
-
-  public Producto getProducto() {
-    return producto;
-  }
+  public int getCantidad() {return cantidad;}
+  public BigDecimal getPrecioUnitario() {return precioUnitario;}
+  public BigDecimal getPorcentajeDescuento() {return porcentajeDescuento;}
+  public BigDecimal getSubtotal() {return subtotal;}
+  public Producto getProducto() {return producto;}
 
   public void setCantidad(int cantidad) {
     this.cantidad = cantidad;
+    calcularSubtotal();
   }
 
-  public void setPrecioUnitario(double precioUnitario) {
+  public void setPrecioUnitario(BigDecimal precioUnitario) {
     this.precioUnitario = precioUnitario;
+    calcularSubtotal();
   }
 
-  public void setPorcentajeDescuento(double porcentajeDescuento) {
+  public void setPorcentajeDescuento(BigDecimal porcentajeDescuento) {
     this.porcentajeDescuento = porcentajeDescuento;
+    calcularSubtotal();
   }
 
-  public void setSubtotal(double subtotal) {
+  public void setSubtotal(BigDecimal subtotal) {
     this.subtotal = subtotal;
   }
 

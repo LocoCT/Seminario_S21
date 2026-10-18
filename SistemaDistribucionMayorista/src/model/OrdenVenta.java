@@ -1,4 +1,5 @@
 package model;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
@@ -8,9 +9,9 @@ public class OrdenVenta {
   private int numeroOrden;
   private Date fechaEmision;
   private String estado;
-  private double subtotal;
-  private double descuentoAplicado;
-  private double total;
+  private BigDecimal subtotal;
+  private BigDecimal descuentoAplicado;
+  private BigDecimal total;
   private Cliente cliente;
   private Usuario usuario;
   private List<DetalleOrdenVenta> items;
@@ -22,9 +23,9 @@ public class OrdenVenta {
     this.cliente = cliente;
     this.usuario = usuario;
     this.items = new ArrayList<>();
-    this.subtotal = 0.0;
-    this.descuentoAplicado = 0.0;
-    this.total = 0.0;
+    this.subtotal = BigDecimal.ZERO;
+    this.descuentoAplicado = BigDecimal.ZERO;
+    this.total = BigDecimal.ZERO;
   }
   
   public void agregarItem(DetalleOrdenVenta item) {
@@ -36,87 +37,39 @@ public class OrdenVenta {
     this.estado = nuevoEstado;
   }
 
-  public double calcularTotal() {
-    this.subtotal = 0;
-
+  public BigDecimal calcularTotal() {
+    this.subtotal = BigDecimal.ZERO;
     for (DetalleOrdenVenta item : items) {
-      this.subtotal += item.calcularSubtotal();
+      this.subtotal = this.subtotal.add(item.calcularSubtotal());
     }
-    this.total = this.subtotal;
+    this.total = this.subtotal.subtract(this.descuentoAplicado).max(BigDecimal.ZERO);
     return this.total;
-    
-  }
+}
 
-  // Get y Set
-  public int getNumeroOrden() {
-    return numeroOrden;
-  }
+  public int getNumeroOrden() {return numeroOrden;}
+  public void setNumeroOrden(int numeroOrden) {this.numeroOrden = numeroOrden;}
+
+  public Date getFechaEmision() {return fechaEmision;}
+  public void setFechaEmision(Date fechaEmision) {this.fechaEmision = fechaEmision;}
+
+  public String getEstado() { return estado; }
+  public void setEstado(String estado) {this.estado = estado;}
+
+  public BigDecimal getSubtotal() { return subtotal; }
+  public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
+
+  public BigDecimal getDescuentoAplicado() {return descuentoAplicado; }
+  public void setDescuentoAplicado(BigDecimal descuentoAplicado) {this.descuentoAplicado = descuentoAplicado;}
+
+  public BigDecimal getTotal() {return total;}
+  public void setTotal(BigDecimal total) {this.total = total;}
+
+  public Cliente getCliente() { return cliente; }
+  public void setCliente(Cliente cliente) { this.cliente = cliente; }
+
+  public Usuario getUsuario() { return usuario; }
+  public void setUsuario(Usuario usuario) { this.usuario = usuario; }
   
-  public void setNumeroOrden(int numeroOrden) {
-    this.numeroOrden = numeroOrden;
-  }
-
-  public Date getFechaEmision() {
-    return fechaEmision;
-  }
-
-  public void setFechaEmision(Date fechaEmision) {
-    this.fechaEmision = fechaEmision;
-  }
-
-  public String getEstado() {
-    return estado;
-  }
-
-  public void setEstado(String estado) {
-    this.estado = estado;
-  }
-
-  public double getSubtotal() {
-    return subtotal;
-  }
-
-  public void setSubtotal(double subtotal) {
-    this.subtotal = subtotal;
-  }
-
-  public double getDescuentoAplicado() {
-    return descuentoAplicado;
-  }
-
-  public void setDescuentoAplicado(double descuentoAplicado) {
-    this.descuentoAplicado = descuentoAplicado;
-  }
-
-  public double getTotal() {
-    return total;
-  }
-
-  public void setTotal(double total) {
-    this.total = total;
-  }
-
-  public Cliente getCliente() {
-    return cliente;
-  }
-
-  public void setCliente(Cliente cliente) {
-    this.cliente = cliente;
-  }
-
-  public Usuario getUsuario() {
-    return usuario;
-  }
-
-  public void setUsuario(Usuario usuario) {
-    this.usuario = usuario;
-  }
-
-  public List<DetalleOrdenVenta> getItems() {
-    return items;
-  }
-
-  public void setItems(List<DetalleOrdenVenta> items) {
-    this.items = items;
-  }
+  public List<DetalleOrdenVenta> getItems() { return items;}
+  public void setItems(List<DetalleOrdenVenta> items) { this.items = items; }
 }
