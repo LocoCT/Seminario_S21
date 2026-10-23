@@ -1,10 +1,17 @@
-# Sistema de Gestión Distribuidora Mayorista
+# Sistema de Gestión Mayorista
 
 Aplicación de escritorio en **Java (Swing)** para la gestión de una distribuidora mayorista. Permite administrar clientes, productos, órdenes de venta, facturación y cobros, y el control de stock en depósitos.
 
 Proyecto desarrollado para la materia **Seminario de Práctica de Informática**.
 
-> **Estado:** prototipo funcional (Tercera entrega). Los datos se guardan en memoria mediante DAO simulados (mock). La conexión a base de datos se incorpora en la Cuarta entrega.
+## Estado del proyecto
+
+| Entrega         | Estado                                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Tercera entrega | Prototipo funcional con datos en memoria (DAO simulados)                                                           |
+| Cuarta entrega  | **En desarrollo:** migración a Maven completada y esquema MySQL disponible. Los DAO con JDBC se están incorporando |
+
+Hasta que todos los DAO JDBC estén implementados, la aplicación sigue funcionando con los DAO simulados (mock) definidos en `DAOFactory`.
 
 ## Funcionalidades
 
@@ -18,22 +25,24 @@ Proyecto desarrollado para la materia **Seminario de Práctica de Informática**
 
 ## Arquitectura
 
-Patrón **MVC** con capa **DAO** desacoplada mediante interfaces y `DAOFactory`:
+Patrón **MVC** con capa **DAO** desacoplada mediante interfaces y `DAOFactory` (Factory):
 
 ```
 Vista (Swing) → Controller → DAO (DAOFactory) → Datos en memoria (Mock)
-                                              → Base de datos (JDBC, próxima entrega)
+                                              → MySQL (JDBC)
 ```
 
-Para pasar a base de datos solo hay que cambiar en `DAOFactory` los `new ...Mock()` por las implementaciones JDBC.
+Para pasar de datos simulados a MySQL solo se cambia en `DAOFactory` cada `new ...Mock()` por su implementación JDBC. Los controladores y las vistas no se modifican.
 
 ## Estructura del repositorio
 
 ```
 Seminario_S21/
-├── Database/                        # Script de esquema de la base de datos
+├── Database/
+│   └── schema.sql                   # Esquema, datos de ejemplo y consultas de MySQL
 └── SistemaDistribucionMayorista/
-    └── src/
+    ├── pom.xml                      # Configuración de Maven y dependencias
+    └── src/main/java/
         ├── app/                     # MainApp (punto de entrada)
         ├── controller/              # Controladores de cada módulo
         ├── dao/                     # Interfaces DAO, implementaciones Mock y DAOFactory
@@ -42,28 +51,54 @@ Seminario_S21/
         └── view/                    # Pantallas Swing (y view/estilos)
 ```
 
+## Base de datos
+
+El script `Database/schema.sql` crea la base **`SistemaMayoristaDB`** en MySQL con 12 tablas:
+
+| Grupo                 | Tablas                                                         |
+| --------------------- | -------------------------------------------------------------- |
+| Usuarios y catálogos  | `Usuario`, `CategoriaCliente`, `CategoriaProducto`, `Deposito` |
+| Entidades principales | `Cliente`, `Producto`                                          |
+| Ventas                | `OrdenVenta`, `DetalleOrdenVenta`                              |
+| Facturación y cobros  | `Factura`, `Pago`, `Pago_Factura`                              |
+| Inventario            | `MovimientoStock`                                              |
+
+Las relaciones se resuelven con claves foráneas. `Pago_Factura` es la tabla intermedia que permite imputar un pago a una o varias facturas, con el monto aplicado a cada una. El script incluye además datos de ejemplo y consultas de muestra (movimientos de stock, clientes con su categoría y seguimiento de un pedido hasta su cobro).
+
 ## Requisitos
 
-- Java JDK 8 o superior.
-- No requiere librerías externas ni base de datos.
+- **JDK 17 o superior**
+- **Maven 3.9 o superior**
+- **MySQL 8** (solo para la parte con base de datos)
+
+El driver de MySQL (`mysql-connector-j`) se descarga automáticamente con Maven a través del `pom.xml`.
 
 ## Cómo ejecutarlo
 
-### Desde Visual Studio Code
+### 1. Crear la base de datos (opcional hasta completar los DAO JDBC)
 
-1. Abrir la carpeta `SistemaDistribucionMayorista`.
-2. Ejecutar la clase `app.MainApp`.
-
-### Desde la terminal
-
-Ubicarse en la carpeta `SistemaDistribucionMayorista` y ejecutar:
+Desde la raíz del repositorio:
 
 ```
-javac -d bin -sourcepath src src/app/MainApp.java
-java -cp bin app.MainApp
+mysql -u root -p < Database/schema.sql
 ```
+
+El script no borra tablas existentes. Si necesitás ejecutarlo de nuevo, primero eliminá la base con `DROP DATABASE SistemaMayoristaDB;`.
+
+### 2. Compilar y ejecutar la aplicación
+
+Desde la carpeta `SistemaDistribucionMayorista`:
+
+```
+mvn compile
+mvn exec:java
+```
+
+También se puede abrir esa carpeta en Visual Studio Code y ejecutar la clase `app.MainApp`.
 
 ## Credenciales de prueba
+
+Mientras la aplicación use los DAO simulados:
 
 | Usuario  | Contraseña | Rol            | Estado                       |
 | -------- | ---------- | -------------- | ---------------------------- |
@@ -71,16 +106,16 @@ java -cp bin app.MainApp
 | Vendedor | ventas123  | Vendedor       | Activo                       |
 | inactivo | 1234       | Vendedor       | Inactivo (ingreso rechazado) |
 
-La pantalla de login se abre con las credenciales de `Admin` precargadas.
+La pantalla de login se abre con las credenciales de `Admin` precargadas. Cuando el login pase a leer de MySQL, los usuarios serán los cargados en la tabla `Usuario` del script.
 
 ## Limitaciones actuales
 
-- Los datos se pierden al cerrar la aplicación (persistencia en memoria).
-- Las contraseñas de prueba están en texto plano y los roles aún no restringen pantallas.
+- Con los DAO simulados, los datos se pierden al cerrar la aplicación.
+- Las contraseñas están sin cifrar y los roles aún no restringen pantallas.
 - Las tarjetas de resumen del panel principal muestran valores de ejemplo.
 - No incluye facturación electrónica ni reportes.
 
 ## Autor
 
-**Federico Catena**
+**[Nombre y apellido]** – Legajo [Legajo]
 Seminario de Práctica de Informática
