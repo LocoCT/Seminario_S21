@@ -1,21 +1,24 @@
 package controller;
-import view.GestionProductosView;
-import view.NuevoProductoView;
-import view.estilos.CampoMoneda;
-import model.CategoriaProducto;
-import model.Producto;
-import util.Dialogs;
-import java.math.BigDecimal;
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import dao.DAOFactory;
-import dao.ProductoDAO;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.math.BigDecimal;
 import java.util.List;
+
+import javax.swing.JComboBox;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import dao.DAOException;
+import dao.DAOFactory;
+import dao.ProductoDAO;
+import model.CategoriaProducto;
+import model.Producto;
+import util.Dialogs;
+import view.GestionProductosView;
+import view.NuevoProductoView;
+import view.estilos.CampoMoneda;
  
 public class ControllerProductos implements ActionListener, ListSelectionListener {
  
@@ -122,8 +125,13 @@ public class ControllerProductos implements ActionListener, ListSelectionListene
         int fila = vista.getTablaProductos().getSelectedRow();
         String codigoSel = (fila >= 0) ? (String) vista.getModeloTabla().getValueAt(fila, 0) : null;
  
-        actualizarTabla(dao.buscar(vista.getTxtBuscar().getText()));
- 
+        try {
+            actualizarTabla(dao.buscar(vista.getTxtBuscar().getText()));
+        } catch (DAOException e) {
+            System.err.println("No se pudo actualizar la tabla de productos: " + e.getMessage());
+            return;
+        }
+
         if (codigoSel == null) {
             return;
         }

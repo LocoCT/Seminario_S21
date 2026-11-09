@@ -1,15 +1,35 @@
 package view;
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.table.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.List;
+import java.util.Locale;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+
 import model.OrdenVenta;
-import view.estilos.*;
+import view.estilos.Estilos;
 import view.estilos.Estilos.BotonRedondeado;
 
 public class MenuPrincipalView extends JFrame {
@@ -28,6 +48,13 @@ public class MenuPrincipalView extends JFrame {
 
   private DefaultTableModel modeloTablaOrdenes;
   private JLabel lblVerTodas;
+
+  //Valores de las tarjetas de resumen (se calculan con datos reales en el controller)
+  private JLabel lblOrdenesPendientes;
+  private JLabel lblCobrosDia;
+  private JLabel lblDetalleCobros;
+  private JLabel lblStockMinimo;
+  private JLabel lblClientesDeudores;
 
   //Texto que dependen del usuario logueado
   private JLabel lblSaludo;
@@ -206,17 +233,23 @@ public class MenuPrincipalView extends JFrame {
   }
 
   private JPanel crearTarjetas() {
+    lblOrdenesPendientes = new JLabel("-");
+    lblCobrosDia = new JLabel("-");
+    lblDetalleCobros = new JLabel(" ");
+    lblStockMinimo = new JLabel("-");
+    lblClientesDeudores = new JLabel("-");
+
     JPanel fila = new JPanel(new GridLayout(1, 4, 12, 0));
     fila.setOpaque(false);
-    fila.add(crearTarjetaResumen("Órdenes pendientes", "12", "Por facturar"));
-    fila.add(crearTarjetaResumen("Cobros del día", "$ 486.200", "+8,4% vs. ayer"));
-    fila.add(crearTarjetaResumen("Stock mínimo", "7", "Productos a revisar"));
-    fila.add(crearTarjetaResumen("Clientes deudores", "18", "Requieren seguimiento"));
+    fila.add(crearTarjetaResumen("Órdenes pendientes", lblOrdenesPendientes, new JLabel("Por facturar")));
+    fila.add(crearTarjetaResumen("Cobros del día", lblCobrosDia, lblDetalleCobros));
+    fila.add(crearTarjetaResumen("Stock mínimo", lblStockMinimo, new JLabel("Productos a revisar")));
+    fila.add(crearTarjetaResumen("Clientes deudores", lblClientesDeudores, new JLabel("Requieren seguimiento")));
     fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
     return fila;
   }
 
-  private JPanel crearTarjetaResumen(String titulo, String valor, String detalle) {
+  private JPanel crearTarjetaResumen(String titulo, JLabel lblValor, JLabel lblDetalle) {
     JPanel t = Estilos.crearTarjeta(null);
     t.setLayout(new BoxLayout(t, BoxLayout.Y_AXIS));
 
@@ -224,11 +257,9 @@ public class MenuPrincipalView extends JFrame {
     lblTitulo.setFont(Estilos.fuente(Font.PLAIN, 12));
     lblTitulo.setForeground(Estilos.TEXTO);
 
-    JLabel lblValor = new JLabel(valor);
     lblValor.setFont(Estilos.fuente(Font.BOLD, 22));
     lblValor.setForeground(Estilos.AZUL);
 
-    JLabel lblDetalle = new JLabel(detalle);
     lblDetalle.setFont(Estilos.fuente(Font.PLAIN, 10));
     lblDetalle.setForeground(Estilos.TEXTO_SUAVE);
 
@@ -236,6 +267,16 @@ public class MenuPrincipalView extends JFrame {
     t.add(lblValor);
     t.add(lblDetalle);
     return t;
+  }
+
+  //Actualiza las tarjetas de resumen con los valores ya calculados
+  public void actualizarTarjetas(int ordenesPendientes, String cobrosDia, String detalleCobros,
+                                 int productosBajoMinimo, int clientesDeudores) {
+    lblOrdenesPendientes.setText(String.valueOf(ordenesPendientes));
+    lblCobrosDia.setText(cobrosDia);
+    lblDetalleCobros.setText(detalleCobros);
+    lblStockMinimo.setText(String.valueOf(productosBajoMinimo));
+    lblClientesDeudores.setText(String.valueOf(clientesDeudores));
   }
 
   private JPanel crearAccionesRapidas() {
@@ -269,6 +310,7 @@ public class MenuPrincipalView extends JFrame {
     titulo.setForeground(Estilos.TEXTO);
 
     JLabel verTodas = new JLabel("Ver todas");
+    lblVerTodas = verTodas;
     verTodas.setFont(Estilos.fuente(Font.BOLD, 11));
     verTodas.setForeground(Estilos.AZUL);
     verTodas.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

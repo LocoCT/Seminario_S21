@@ -1,18 +1,18 @@
 package dao;
-import model.Cliente;
-import model.DetalleOrdenVenta;
-import model.OrdenVenta;
-import model.Producto;
-import model.Usuario;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import model.Cliente;
+import model.DetalleOrdenVenta;
+import model.OrdenVenta;
+import model.Producto;
+import model.Usuario;
+
 public class OrdenVentaDAOMock implements OrdenVentaDAO {
 
-    // Temporal: reemplazar por consultas a la base de datos.
     // Es static para que todas las pantallas ven las mismas órdenes.
     private static final List<OrdenVenta> ORDENES = new ArrayList<>();
 
@@ -85,12 +85,14 @@ public class OrdenVentaDAOMock implements OrdenVentaDAO {
         }
     }
 
+    @Override
     public List<OrdenVenta> listar() {
         return new ArrayList<>(ORDENES);
     }
 
     // Siguiente numero libre (ultimo numero usado + 1).
     // solo se ocupa cuando la orden se guarda con agregar().
+    @Override
     public int siguienteNumero() {
         int max = 0;
         for (OrdenVenta o : ORDENES) {
@@ -99,7 +101,12 @@ public class OrdenVentaDAOMock implements OrdenVentaDAO {
         return max + 1;
     }
 
+    @Override
     public void agregar(OrdenVenta orden) {
+        for (DetalleOrdenVenta d : orden.getItems()){
+            d.getProducto().actualizarStock(d.getCantidad(), "Egreso");
+        }
+        orden.getCliente().actualizarSaldo(orden.getTotal());
         ORDENES.add(orden);
     }
 }

@@ -10,11 +10,12 @@ public class LoginView extends JFrame {
   private JPasswordField txtClave;
   private JButton btnIngresar;
   private JButton btnSalir;
+  private JButton btnConfigDB;
   private JLabel lblError;
 
   public LoginView() {
     setTitle("Iniciar sesión - Sistema de Gestión Mayorista");
-    setSize(420, 460);
+    setSize(420, 500);
     setResizable(false);
     setLocationRelativeTo(null);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -33,7 +34,7 @@ public class LoginView extends JFrame {
     JPanel tarjeta = Estilos.crearTarjeta(null);
     tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
     tarjeta.setBorder(new CompoundBorder(new LineBorder(Estilos.BORDE), new EmptyBorder(26, 28, 26, 28)));
-    tarjeta.setPreferredSize(new Dimension(340, 380));
+    tarjeta.setPreferredSize(new Dimension(350, 430));
 
     JLabel sub = new JLabel("Sistema de Gestión Mayorista");
     sub.setFont(Estilos.fuente(Font.PLAIN, 11));
@@ -65,18 +66,24 @@ public class LoginView extends JFrame {
     botones.setAlignmentX(Component.LEFT_ALIGNMENT);
     botones.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
 
+    btnConfigDB = Estilos.botonSecundario("Configurar Base de Datos");
+    btnConfigDB.setAlignmentX(Component.LEFT_ALIGNMENT);
+    btnConfigDB.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+
     tarjeta.add(sub);
     tarjeta.add(titulo);
-    tarjeta.add(Box.createVerticalStrut(24));
+    tarjeta.add(Box.createVerticalStrut(20));
     tarjeta.add(crearEtiqueta("Usuario"));
     tarjeta.add(Box.createVerticalStrut(4));
     tarjeta.add(alinear(txtUsuario));
-    tarjeta.add(Box.createVerticalStrut(14));
+    tarjeta.add(Box.createVerticalStrut(12));
     tarjeta.add(crearEtiqueta("Contraseña"));
     tarjeta.add(Box.createVerticalStrut(4));
     tarjeta.add(alinear(txtClave));
-    tarjeta.add(Box.createVerticalStrut(10));
+    tarjeta.add(Box.createVerticalStrut(8));
     tarjeta.add(lblError);
+    tarjeta.add(Box.createVerticalStrut(6));
+    tarjeta.add(btnConfigDB);
     tarjeta.add(Box.createVerticalGlue());
     tarjeta.add(botones);
 
@@ -119,4 +126,5 @@ public class LoginView extends JFrame {
 
   public JButton getBtnIngresar() { return btnIngresar; }
   public JButton getBtnSalir() { return btnSalir; }
+  public JButton getBtnConfigDB() { return btnConfigDB; }
 }

@@ -1,19 +1,21 @@
 package controller;
-import model.Deposito;
-import model.MovimientoStock;
-import model.Producto;
-import model.Usuario;
-import view.GestionStockView;
-import view.NuevoMovimientoStockView;
-import util.Dialogs;
-import dao.DAOFactory;
-import dao.ProductoDAO;
-import dao.StockDAO;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+
+import dao.DAOException;
+import dao.DAOFactory;
+import dao.ProductoDAO;
+import dao.StockDAO;
+import model.Deposito;
+import model.MovimientoStock;
+import model.Producto;
+import model.Usuario;
+import util.Dialogs;
+import view.GestionStockView;
+import view.NuevoMovimientoStockView;
 
 public class ControllerStock implements ActionListener {
 
@@ -29,6 +31,9 @@ public class ControllerStock implements ActionListener {
         this.daoStock = DAOFactory.stock();
         this.daoProductos = DAOFactory.productos();
 
+    }
+
+    public void iniciar(){
         registrarListeners();
         cargarTablaMovimientos(daoStock.listarMovimientos());
     }
@@ -108,13 +113,23 @@ public class ControllerStock implements ActionListener {
             modal.getCmbProductos().addItem(p.getCodigo() + " - " + p.getDescripcion() + " (Stock actual: " + p.getStockActual() + ")");
         }
 
+        List<Deposito> depositos = daoStock.listarDepositos();
+        modal.getCmbDeposito().removeAllItems();
+        for (Deposito d : depositos){
+            modal.getCmbDeposito().addItem(d.getNombre());
+        }
+
         modal.getBtnRegistrar().addActionListener(e -> {
             int idxProd = modal.getCmbProductos().getSelectedIndex();
             if (idxProd < 0) return;
 
             Producto prodSel = productos.get(idxProd);
             String tipoMov = (String) modal.getCmbTipoMovimiento().getSelectedItem();
-            String nombreDeposito = (String) modal.getCmbDeposito().getSelectedItem();
+
+            int idxDep = modal.getCmbDeposito().getSelectedIndex();
+            if (idxDep < 0) return;
+            Deposito depositoSel = depositos.get(idxDep);
+
             String motivo = modal.getTxtMotivo().getText().trim();
 
             int cantidad;
@@ -140,8 +155,6 @@ public class ControllerStock implements ActionListener {
                 return;
             }
 
-            Deposito depositoSel = new Deposito(1, nombreDeposito, "Central");
-
             // Creamos y registramos el movimiento
             MovimientoStock nuevoMovimiento = new MovimientoStock(
                 daoStock.siguienteId(),
@@ -154,8 +167,12 @@ public class ControllerStock implements ActionListener {
                 this.usuarioLogueado
             );
 
-            // Se agrega al dao y llamamos a registrarMovimiento
-            daoStock.agregarMovimiento(nuevoMovimiento);
+            try {
+                daoStock.agregarMovimiento(nuevoMovimiento);
+            } catch (DAOException ex) {
+                modal.mostrarError("No se pudo registrar el movimiento de stock en la base de datos.");
+                return;
+            }
 
             Dialogs.info(modal, "Movimiento de stock registrado con éxito.", "Éxito");
             modal.dispose();

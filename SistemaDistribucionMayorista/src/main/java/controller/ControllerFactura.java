@@ -1,26 +1,29 @@
 package controller;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.swing.JOptionPane;
+
+import dao.ClienteDAO;
+import dao.DAOException;
+import dao.DAOFactory;
+import dao.FacturaDAO;
+import dao.OrdenVentaDAO;
 import model.Cliente;
 import model.DetalleOrdenVenta;
 import model.Factura;
 import model.OrdenVenta;
 import model.Pago;
+import util.Dialogs;
 import view.GestionFacturaView;
 import view.NuevaFacturaView;
 import view.NuevoPagoView;
 import view.estilos.CampoMoneda;
-import java.math.BigDecimal;
-import javax.swing.*;
-import util.Dialogs;
-import dao.ClienteDAO;
-import dao.DAOFactory;
-import dao.FacturaDAO;
-import dao.OrdenVentaDAO;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 public class ControllerFactura implements ActionListener {
 
@@ -39,6 +42,9 @@ public class ControllerFactura implements ActionListener {
 
     public ControllerFactura(GestionFacturaView vista) {
         this.vista = vista;
+    }
+
+    public void iniciar(){
         registrarListeners();
         cargarTablaFacturas(daoFacturas.listarFacturas());
         cargarTablaPagos(daoFacturas.listarPagos());
@@ -259,7 +265,18 @@ public class ControllerFactura implements ActionListener {
 
         OrdenVenta ordenSel = ordenesPendientesFacturar.get(idx);
         Factura nueva = new Factura(daoFacturas.siguienteNumeroFactura(), ordenSel);
-        daoFacturas.agregarFactura(nueva);
+        
+        try {
+
+            daoFacturas.agregarFactura(nueva);
+            
+        } catch (DAOException ex) {
+
+            Dialogs.error(dialogoNuevaFactura, "No se pudo emitir la factura." 
+            + ex.getMessage(), "ERROR");
+            return;
+
+        }
 
         JOptionPane.showMessageDialog(dialogoNuevaFactura, 
                 "Factura " + FacturaDAO.formatearNumeroFactura(nueva.getNumeroFactura()) + " emitida con éxito.",
@@ -382,7 +399,18 @@ public class ControllerFactura implements ActionListener {
         }
 
         Pago pago = new Pago(daoFacturas.siguienteIdPago(), monto, medio, ref, cli, facturaAsociada);
-        daoFacturas.agregarPago(pago);
+        
+        try{
+
+            daoFacturas.agregarPago(pago);
+
+        } catch (DAOException ex) {
+
+            Dialogs.error(nuevoPago, "No se pudo registrar el pago." 
+            + ex.getMessage(), "ERROR");
+            return;
+
+        }
 
         JOptionPane.showMessageDialog(nuevoPago, 
                 "Pago registrado exitosamente.\nNuevo saldo del cliente: $ " + CampoMoneda.formatear(cli.getSaldo()),

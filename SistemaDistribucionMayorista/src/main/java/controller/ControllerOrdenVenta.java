@@ -1,23 +1,25 @@
 package controller;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import dao.ClienteDAO;
+import dao.DAOException;
+import dao.DAOFactory;
+import dao.OrdenVentaDAO;
+import dao.ProductoDAO;
 import model.Cliente;
 import model.DetalleOrdenVenta;
 import model.OrdenVenta;
 import model.Producto;
 import model.Usuario;
+import util.Dialogs;
 import view.GestionOrdenVentaView;
 import view.NuevaOrdenVentaView;
 import view.estilos.CampoMoneda;
-import java.math.BigDecimal;
-import util.Dialogs;
-import dao.ClienteDAO;
-import dao.DAOFactory;
-import dao.OrdenVentaDAO;
-import dao.ProductoDAO;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ControllerOrdenVenta implements ActionListener {
 
@@ -36,6 +38,9 @@ public class ControllerOrdenVenta implements ActionListener {
     public ControllerOrdenVenta(GestionOrdenVentaView vistaGestion, Usuario usuario) {
         this.vistaGestion = vistaGestion;
         this.usuario = usuario;
+    }
+
+    public void iniciar (){
         registrarListenersGestion();
         cargarTablaGestion(daoOrdenes.listar());
     }
@@ -362,15 +367,15 @@ public class ControllerOrdenVenta implements ActionListener {
             return;
         }
 
-        // 4. Descuento stock físico 
-        for (DetalleOrdenVenta d : orden.getItems()) {
-            d.getProducto().actualizarStock(d.getCantidad(), "Egreso");
-        }
-        // 5. Actualizamos saldo
-        clienteSel.actualizarSaldo(totalOrden);
+        try {
 
-        // 6. Guardamos Orden
-        daoOrdenes.agregar(orden);
+            daoOrdenes.agregar(orden);
+            
+        } catch (DAOException ex) {
+            Dialogs.error(vistaEmision, "No se pudo registrar la orden" 
+                + ex.getMessage(), "Error");
+            return;
+        }
 
         Dialogs.info(vistaEmision,
             "Orden de Venta " + OrdenVentaDAO.formatearNumero(orden.getNumeroOrden())

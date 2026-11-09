@@ -1,9 +1,10 @@
 package dao;
+import java.util.ArrayList;
+import java.util.List;
+
 import model.Factura;
 import model.OrdenVenta;
 import model.Pago;
-import java.util.ArrayList;
-import java.util.List;
 
  public class FacturaDAOMock implements FacturaDAO {
 
@@ -44,14 +45,17 @@ import java.util.List;
         }
     }
 
+    @Override
     public List<Factura> listarFacturas() {
         return new ArrayList<>(FACTURAS);
     }
 
+    @Override
     public List<Pago> listarPagos() {
         return new ArrayList<>(PAGOS);
     }
 
+    @Override 
     public int siguienteNumeroFactura() {
         int max = 0;
         for (Factura f : FACTURAS) {
@@ -60,6 +64,7 @@ import java.util.List;
         return max + 1;
     }
 
+    @Override
     public int siguienteIdPago() {
         int max = 0;
         for (Pago p : PAGOS) {
@@ -68,14 +73,17 @@ import java.util.List;
         return max + 1;
     }
 
+    @Override
     public void agregarFactura(Factura factura) {
         factura.setEstado("PENDIENTE");
         FACTURAS.add(factura);
         if (factura.getOrden() != null) {
             factura.getOrden().setEstado("Facturada");
+            factura.getOrden().getCliente().actualizarSaldo(factura.getIva());
         }
     }
 
+    @Override
     public void agregarPago(Pago pago) {
         PAGOS.add(pago);
         // Reduce el saldo del cliente

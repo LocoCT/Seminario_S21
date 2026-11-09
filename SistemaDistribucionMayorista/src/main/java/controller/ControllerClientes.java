@@ -1,18 +1,21 @@
 package controller;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JComboBox;
+
+import dao.ClienteDAO;
+import dao.DAOFactory;
 import model.Cliente;
+import model.Usuario;
+import util.Dialogs;
+import util.Validator;
 import view.GestionClientesView;
 import view.NuevoClienteView;
 import view.estilos.CampoMoneda;
-import java.math.BigDecimal;
-import javax.swing.*;
-import util.Dialogs;
-import util.Validator;
-import dao.ClienteDAO;
-import dao.DAOFactory;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ControllerClientes implements ActionListener {
 
@@ -20,9 +23,11 @@ public class ControllerClientes implements ActionListener {
     private final ClienteDAO dao = DAOFactory.clientes();
     private List<Cliente> clientesMostrados = new ArrayList<>();
     private Cliente seleccionado;
+    private final Usuario usuario;
 
-    public ControllerClientes(GestionClientesView vista) {
+    public ControllerClientes(GestionClientesView vista, Usuario usuario) {
         this.vista = vista;
+        this.usuario = usuario;
         cargarCategorias(vista.getCmbCategoria());
         registrarListeners();
         cargarTabla(dao.listar());
@@ -207,7 +212,7 @@ public class ControllerClientes implements ActionListener {
         String cuitFormateado = cuit.substring(0, 2) + "-" + cuit.substring(2, 10) + "-" + cuit.substring(10);
         // orden: telefono, email, CUIT, razonSocial, direccion, categoria, limiteCredito, saldo
         Cliente nuevo = new Cliente(telefono, email, cuitFormateado, razon, direccion, categoria, limite, BigDecimal.ZERO);
-        dao.agregar(nuevo);
+        dao.agregar(nuevo, usuario);
 
         vista.getTxtBuscar().setText("");
         cargarTabla(dao.listar());

@@ -1,13 +1,16 @@
 package dao;
-import model.Cliente;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
+import model.Cliente;
+import model.Usuario;
 
 public class ClienteDAOMock implements ClienteDAO {
 
     // Temporal: reemplaza por consultas a la base de datos
     private static final List<Cliente> CLIENTES = new ArrayList<>();
+    @Override
     public List<String> listarCategorias(){
         return new ArrayList<>(java.util.Arrays.asList("Minorista", "Mayorista", "Coporativo"));
     }
@@ -25,10 +28,12 @@ public class ClienteDAOMock implements ClienteDAO {
                 new BigDecimal("750000.50"), new BigDecimal("241800.00")));
     }
 
+    @Override
     public List<Cliente> listar() {
         return new ArrayList<>(CLIENTES);
     }
 
+    @Override
     public List<Cliente> buscar(String texto) {
         String t = texto.toLowerCase().trim();
         String digitos = t.replaceAll("\\D", "");
@@ -43,6 +48,7 @@ public class ClienteDAOMock implements ClienteDAO {
         return resultado;
     }
 
+    @Override
     public boolean existeCuit(String cuit) {
         String digitos = cuit.replaceAll("\\D", "");
         for (Cliente c : CLIENTES) {
@@ -53,10 +59,12 @@ public class ClienteDAOMock implements ClienteDAO {
         return false;
     }
 
-    public void agregar(Cliente cliente) {
+    @Override
+    public void agregar(Cliente cliente, Usuario usuarioAlta) {
         CLIENTES.add(cliente);
     }
 
+    @Override
     public void actualizar(Cliente cliente) {
         for (int i = 0; i < CLIENTES.size(); i++) {
             if (CLIENTES.get(i).getCUIT().equals(cliente.getCUIT())) {

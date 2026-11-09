@@ -1,121 +1,122 @@
-# Sistema de Gestión Mayorista
+# Sistema de Distribución Mayorista
 
-Aplicación de escritorio en **Java (Swing)** para la gestión de una distribuidora mayorista. Permite administrar clientes, productos, órdenes de venta, facturación y cobros, y el control de stock en depósitos.
+Aplicación de escritorio (Java + Swing) para la gestión de una distribuidora mayorista:
+clientes, productos, stock en depósitos, órdenes de venta, facturación y cobros.
+Los datos se guardan en una base MySQL, a la que se accede por JDBC.
 
-Proyecto desarrollado para la materia **Seminario de Práctica de Informática**.
+## Requisitos
 
-## Estado del proyecto
+- JDK 21
+- Maven 3.8 o superior
+- MySQL 8 corriendo en `localhost:3306`
 
-| Entrega         | Estado                                                                                                             |
-| --------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Tercera entrega | Prototipo funcional con datos en memoria (DAO simulados)                                                           |
-| Cuarta entrega  | **En desarrollo:** migración a Maven completada y esquema MySQL disponible. Los DAO con JDBC se están incorporando |
+## Puesta en marcha
 
-Hasta que todos los DAO JDBC estén implementados, la aplicación sigue funcionando con los DAO simulados (mock) definidos en `DAOFactory`.
+**1. Crear la base de datos con los datos de prueba**
 
-## Funcionalidades
-
-- **Login** con validación de credenciales y detección de usuarios inactivos.
-- **Panel principal** con resumen, acciones rápidas y últimas órdenes de venta.
-- **Clientes:** alta, búsqueda por CUIT o razón social y edición. Valida CUIT (11 dígitos, sin duplicados) y email.
-- **Productos:** catálogo con búsqueda, alta con código autogenerado (`PROD-001`, ...) y edición.
-- **Órdenes de venta:** armado del pedido con control de stock y de límite de crédito del cliente. Al confirmar descuenta stock y actualiza el saldo.
-- **Facturación y cobros:** emisión de facturas con IVA 21 %, registro de pagos imputados a facturas e historial de cobros.
-- **Stock:** movimientos de ingreso, egreso y ajuste, con validación de stock disponible.
-
-## Arquitectura
-
-Patrón **MVC** con capa **DAO** desacoplada mediante interfaces y `DAOFactory` (Factory):
+Abrir una terminal en la carpeta raíz del repositorio, entrar al cliente de MySQL y ejecutar el script:
 
 ```
-Vista (Swing) → Controller → DAO (DAOFactory) → Datos en memoria (Mock)
-                                              → MySQL (JDBC)
+mysql -u root -p
 ```
 
-Para pasar de datos simulados a MySQL solo se cambia en `DAOFactory` cada `new ...Mock()` por su implementación JDBC. Los controladores y las vistas no se modifican.
+```sql
+source Database/schema.sql
+```
 
-## Estructura del repositorio
+El script borra y vuelve a crear la base `SistemaMayoristaDB`, así que se puede ejecutar todas las veces
+que haga falta para volver a los datos iniciales. (Si se usa PowerShell, no sirve la forma
+`mysql ... < schema.sql`; usar `source` como se indica arriba.)
+
+**2. Revisar la conexión**
+
+El archivo `SistemaDistribucionMayorista/src/main/resources/db.properties` usa por defecto el usuario
+`root` con clave vacía. Si el MySQL local tiene otra clave, se puede editar ese archivo o pasar los
+datos al ejecutar (con las comillas, para que funcione también en PowerShell):
+
+```
+mvn compile exec:java "-Ddb.user=root" "-Ddb.password=TU_CLAVE"
+```
+
+**3. Ejecutar la aplicación**
+
+```
+cd SistemaDistribucionMayorista
+mvn compile exec:java
+```
+
+## Usuarios de prueba
+
+| Usuario  | Contraseña | Rol           |
+| -------- | ---------- | ------------- |
+| Admin    | admin123   | Administrador |
+| Vendedor | ventas123  | Vendedor      |
+
+## Datos de ejemplo
+
+- **Clientes:** Supermercado El Sol (categoría Mayorista Premium, tiene una orden pendiente),
+  Autoservicio El Centro (con una factura ya pagada). _Despensa Los Amigos_ está dada de baja,
+  por eso no aparece en los listados.
+- **Productos:** PROD-001 a PROD-004. El PROD-003 (Detergente) tiene stock por debajo del mínimo.
+- **Órdenes:** OV-000001 (pendiente de facturar) y OV-000002 (ya facturada y cobrada).
+
+## Circuito sugerido para probar
+
+1. Ingresar como `Admin`.
+2. **Órdenes de Venta → Nueva Orden:** elegir un cliente, agregar productos y confirmar. Se valida el
+   stock y el crédito disponible; al confirmar se descuenta el stock y se suma el total al saldo del cliente.
+3. **Facturación y Cobros → Emitir Factura:** elegir una orden pendiente (por ejemplo OV-000001). La orden
+   pasa a _Facturada_ y el IVA (21%) se suma al saldo del cliente.
+4. **Facturación y Cobros → Registrar Cobro:** elegir el cliente, imputar el pago a la factura y confirmar.
+   La factura pasa a _Pagada_ cuando lo pagado cubre su total (se aceptan pagos parciales) y el saldo del cliente baja.
+5. **Depósito y Stock → Registrar Movimiento:** ingreso, egreso o ajuste manual; el stock del producto se actualiza.
+6. Cerrar la aplicación y volver a abrirla: todo queda guardado en la base.
+
+## Estructura del proyecto
 
 ```
 Seminario_S21/
+├── README.md
 ├── Database/
 │   └── schema.sql                   # Esquema, datos de ejemplo y consultas de MySQL
 └── SistemaDistribucionMayorista/
     ├── pom.xml                      # Configuración de Maven y dependencias
-    └── src/main/java/
-        ├── app/                     # MainApp (punto de entrada)
-        ├── controller/              # Controladores de cada módulo
-        ├── dao/                     # Interfaces DAO, implementaciones Mock y DAOFactory
-        ├── model/                   # Entidades del dominio
-        ├── util/                    # Validator y Dialogs
-        └── view/                    # Pantallas Swing (y view/estilos)
+    └── src/main/
+        ├── java/
+        │   ├── app/                 # MainApp (punto de entrada)
+        │   ├── config/              # ConexionDB (lee db.properties y abre las conexiones)
+        │   ├── controller/          # Controladores de cada módulo
+        │   ├── dao/                 # Interfaces DAO, implementaciones JDBC y Mock, DAOFactory y DAOException
+        │   ├── model/               # Entidades del dominio
+        │   ├── util/                # Validator y Dialogs
+        │   └── view/                # Pantallas Swing (y view/estilos)
+        └── resources/
+            └── db.properties        # Configuración de conexión a MySQL
 ```
 
-## Base de datos
+## Diseño
 
-El script `Database/schema.sql` crea la base **`SistemaMayoristaDB`** en MySQL con 12 tablas:
+- **MVC:** las vistas (`view`) solo arman la interfaz, los controllers (`controller`) manejan los eventos y
+  coordinan, y el modelo (`model`) contiene las reglas del dominio.
+- **DAO + Factory:** cada entidad tiene una interfaz (`ClienteDAO`, `ProductoDAO`...) y su implementación
+  contra MySQL (`ClienteDAOJdbc`, `ProductoDAOJdbc`...). Los controllers dependen solo de las interfaces y
+  `DAOFactory` es el único lugar que decide qué implementación se entrega. Las clases `...Mock` (datos en
+  memoria) implementan las mismas interfaces, pero ya no se usan.
+- **Consultas parametrizadas:** todas las consultas usan `PreparedStatement`, nunca se concatena texto del
+  usuario en el SQL (evita inyección SQL).
+- **Transacciones:** las operaciones que modifican varias tablas se ejecutan en una sola transacción
+  (`commit` si todo sale bien, `rollback` si algo falla): confirmar una orden de venta, emitir una factura,
+  registrar un pago y registrar un movimiento de stock.
+- **Excepciones:** los errores de base de datos se envuelven en `DAOException`. Los controllers la atrapan
+  donde pueden dar un mensaje específico (por ejemplo, stock insuficiente) y `MainApp` muestra un mensaje
+  al usuario para cualquier otro caso.
 
-| Grupo                 | Tablas                                                         |
-| --------------------- | -------------------------------------------------------------- |
-| Usuarios y catálogos  | `Usuario`, `CategoriaCliente`, `CategoriaProducto`, `Deposito` |
-| Entidades principales | `Cliente`, `Producto`                                          |
-| Ventas                | `OrdenVenta`, `DetalleOrdenVenta`                              |
-| Facturación y cobros  | `Factura`, `Pago`, `Pago_Factura`                              |
-| Inventario            | `MovimientoStock`                                              |
+## Problemas frecuentes
 
-Las relaciones se resuelven con claves foráneas. `Pago_Factura` es la tabla intermedia que permite imputar un pago a una o varias facturas, con el monto aplicado a cada una. El script incluye además datos de ejemplo y consultas de muestra (movimientos de stock, clientes con su categoría y seguimiento de un pedido hasta su cobro).
-
-## Requisitos
-
-- **JDK 17 o superior**
-- **Maven 3.9 o superior**
-- **MySQL 8** (solo para la parte con base de datos)
-
-El driver de MySQL (`mysql-connector-j`) se descarga automáticamente con Maven a través del `pom.xml`.
-
-## Cómo ejecutarlo
-
-### 1. Crear la base de datos (opcional hasta completar los DAO JDBC)
-
-Desde la raíz del repositorio:
-
-```
-mysql -u root -p < Database/schema.sql
-```
-
-El script no borra tablas existentes. Si necesitás ejecutarlo de nuevo, primero eliminá la base con `DROP DATABASE SistemaMayoristaDB;`.
-
-### 2. Compilar y ejecutar la aplicación
-
-Desde la carpeta `SistemaDistribucionMayorista`:
-
-```
-mvn compile
-mvn exec:java
-```
-
-También se puede abrir esa carpeta en Visual Studio Code y ejecutar la clase `app.MainApp`.
-
-## Credenciales de prueba
-
-Mientras la aplicación use los DAO simulados:
-
-| Usuario  | Contraseña | Rol            | Estado                       |
-| -------- | ---------- | -------------- | ---------------------------- |
-| Admin    | admin123   | Administrativo | Activo                       |
-| Vendedor | ventas123  | Vendedor       | Activo                       |
-| inactivo | 1234       | Vendedor       | Inactivo (ingreso rechazado) |
-
-La pantalla de login se abre con las credenciales de `Admin` precargadas. Cuando el login pase a leer de MySQL, los usuarios serán los cargados en la tabla `Usuario` del script.
-
-## Limitaciones actuales
-
-- Con los DAO simulados, los datos se pierden al cerrar la aplicación.
-- Las contraseñas están sin cifrar y los roles aún no restringen pantallas.
-- Las tarjetas de resumen del panel principal muestran valores de ejemplo.
-- No incluye facturación electrónica ni reportes.
-
-## Autor
-
-**[Nombre y apellido]** – Legajo [Legajo]
-Seminario de Práctica de Informática
+| Mensaje                                                                  | Qué hacer                                                                     |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `Access denied for user 'root'`                                          | La clave de MySQL no coincide: editar `db.properties` o usar `-Ddb.password`. |
+| `Unknown database 'sistemamayoristadb'`                                  | Falta ejecutar `Database/schema.sql` (paso 1).                                |
+| `Communications link failure` / "No se pudo conectar a la base de datos" | MySQL no está en ejecución.                                                   |
+| `no POM in this directory`                                               | Ejecutar Maven dentro de la carpeta `SistemaDistribucionMayorista`.           |
+| `mvn` no se reconoce como comando                                        | Instalar Maven y agregarlo al `PATH`.                                         |

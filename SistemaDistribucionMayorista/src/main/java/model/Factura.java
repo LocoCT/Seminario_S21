@@ -36,5 +36,6 @@ public class Factura {
   public String getEstado() { return estado; }
   public OrdenVenta getOrden() { return orden; }
   public void setEstado(String estado) { this.estado = estado;}
-
+  public void setNumeroFactura(int numeroFactura) { this.numeroFactura = numeroFactura; }
+  public void setFechaEmision(Date fechaEmision) { this.fechaEmision = fechaEmision; }
 }

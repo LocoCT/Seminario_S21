@@ -1,11 +1,12 @@
 package dao;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import model.Deposito;
 import model.MovimientoStock;
 import model.Producto;
 import model.Usuario;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 public class StockDAOMock implements StockDAO {
 
@@ -34,10 +35,12 @@ public class StockDAOMock implements StockDAO {
         }
     }
 
+    @Override
     public List<MovimientoStock> listarMovimientos() {
         return new ArrayList<>(MOVIMIENTOS);
     }
 
+    @Override
     public int siguienteId() {
         int max = 0;
         for (MovimientoStock m : MOVIMIENTOS) {
@@ -46,8 +49,17 @@ public class StockDAOMock implements StockDAO {
         return max + 1;
     }
 
+    @Override
     public void agregarMovimiento(MovimientoStock mov) {
         MOVIMIENTOS.add(mov);
         mov.registrarMovimientoStock();
+    }
+
+    @Override
+    public List<Deposito> listarDepositos() {
+        List<Deposito> depositos = new ArrayList<>();
+        depositos.add(new Deposito(1, "Depósito Central", "Zona Sur"));
+        depositos.add(new Deposito(2, "Depósito Secundario", "Zona Norte"));
+        return depositos;
     }
 }

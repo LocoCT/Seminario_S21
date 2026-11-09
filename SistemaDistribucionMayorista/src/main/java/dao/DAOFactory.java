@@ -1,14 +1,13 @@
 package dao;
 
-// Para pasar a base de datos, se cambia el "new ...Mock()" por "new ...Jdbc()".
 public final class DAOFactory {
 
     private DAOFactory() {}
 
-    public static ClienteDAO clientes(){ return new ClienteDAOMock(); }
-    public static ProductoDAO productos(){ return new ProductoDAOMock(); }
-    public static StockDAO stock(){ return new StockDAOMock(); }
-    public static OrdenVentaDAO ordenes(){ return new OrdenVentaDAOMock(); }
-    public static FacturaDAO facturas(){ return new FacturaDAOMock(); }
-    public static UsuarioDAO usuarios(){ return new UsuarioDAOMock(); }
+    public static ClienteDAO clientes(){ return new ClienteDAOJdbc(); }
+    public static ProductoDAO productos(){ return new ProductoDAOJdbc(); }
+    public static StockDAO stock(){ return new StockDAOJdbc(); }
+    public static OrdenVentaDAO ordenes(){ return new OrdenVentaDAOJdbc(); }
+    public static FacturaDAO facturas(){ return new FacturaDAOJdbc(); }
+    public static UsuarioDAO usuarios(){ return new UsuarioDAOJdbc(); }
 }

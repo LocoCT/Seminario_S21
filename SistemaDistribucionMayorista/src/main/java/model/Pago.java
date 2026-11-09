@@ -32,6 +32,7 @@ public class Pago {
   public void setId(int id) {this.id = id;}
 
   public Date getFechaPago() { return fechaPago; }
+  public void setFechaPago(Date fechaPago) { this.fechaPago = fechaPago; }
 
   public BigDecimal getMonto() { return monto;}
   public void setMonto(BigDecimal monto) {this.monto = monto;}
