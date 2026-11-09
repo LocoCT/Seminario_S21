@@ -16,7 +16,7 @@ Los datos se guardan en una base MySQL, a la que se accede por JDBC.
 
 Abrir una terminal en la carpeta raíz del repositorio, entrar al cliente de MySQL y ejecutar el script:
 
-```
+```bash
 mysql -u root -p
 ```
 
@@ -25,25 +25,23 @@ source Database/schema.sql
 ```
 
 El script borra y vuelve a crear la base `SistemaMayoristaDB`, así que se puede ejecutar todas las veces
-que haga falta para volver a los datos iniciales. (Si se usa PowerShell, no sirve la forma
-`mysql ... < schema.sql`; usar `source` como se indica arriba.)
+que haga falta para volver a los datos iniciales limpios. (Si se usa PowerShell, también podés ejecutar directamente `Get-Content Database/schema.sql | mysql -u root -p`).
 
-**2. Revisar la conexión**
+**2. Ejecutar la aplicación**
 
-El archivo `SistemaDistribucionMayorista/src/main/resources/db.properties` usa por defecto el usuario
-`root` con clave vacía. Si el MySQL local tiene otra clave, se puede editar ese archivo o pasar los
-datos al ejecutar (con las comillas, para que funcione también en PowerShell):
-
-```
-mvn compile exec:java "-Ddb.user=root" "-Ddb.password=TU_CLAVE"
-```
-
-**3. Ejecutar la aplicación**
-
-```
+```bash
 cd SistemaDistribucionMayorista
 mvn compile exec:java
 ```
+
+**3. Configurar la conexión a MySQL (desde la aplicación)**
+
+Al iniciar la aplicación, en la pantalla de inicio de sesión se encuentra el botón **"Configurar Base de Datos"**:
+- Permite ingresar o ajustar el **Host**, **Puerto**, **Base de Datos**, **Usuario** y **Contraseña** de MySQL sin modificar archivos de texto ni código fuente.
+- Incluye el botón **"Probar Conexión"** para validar en tiempo real el acceso al servidor antes de ingresar.
+- Al presionar **"Guardar"**, la configuración se aplica de forma inmediata a la sesión en ejecución.
+
+*(Alternativamente, también se puede predefinir en `SistemaDistribucionMayorista/src/main/resources/db.properties` o mediante parámetros de Maven: `mvn compile exec:java "-Ddb.user=root" "-Ddb.password=TU_CLAVE"`).*
 
 ## Usuarios de prueba
 
@@ -62,15 +60,16 @@ mvn compile exec:java
 
 ## Circuito sugerido para probar
 
-1. Ingresar como `Admin`.
-2. **Órdenes de Venta → Nueva Orden:** elegir un cliente, agregar productos y confirmar. Se valida el
+1. En la pantalla de login, verificar o ajustar las credenciales de MySQL con el botón **"Configurar Base de Datos"** y presionar **"Probar Conexión"**.
+2. Ingresar como `Admin` (o presionar directamente *Ingresar*, ya que las credenciales vienen precargadas para agilizar la prueba).
+3. **Órdenes de Venta → Nueva Orden:** elegir un cliente, agregar productos y confirmar. Se valida el
    stock y el crédito disponible; al confirmar se descuenta el stock y se suma el total al saldo del cliente.
-3. **Facturación y Cobros → Emitir Factura:** elegir una orden pendiente (por ejemplo OV-000001). La orden
+4. **Facturación y Cobros → Emitir Factura:** elegir una orden pendiente (por ejemplo OV-000001). La orden
    pasa a _Facturada_ y el IVA (21%) se suma al saldo del cliente.
-4. **Facturación y Cobros → Registrar Cobro:** elegir el cliente, imputar el pago a la factura y confirmar.
+5. **Facturación y Cobros → Registrar Cobro:** elegir el cliente, imputar el pago a la factura y confirmar.
    La factura pasa a _Pagada_ cuando lo pagado cubre su total (se aceptan pagos parciales) y el saldo del cliente baja.
-5. **Depósito y Stock → Registrar Movimiento:** ingreso, egreso o ajuste manual; el stock del producto se actualiza.
-6. Cerrar la aplicación y volver a abrirla: todo queda guardado en la base.
+6. **Depósito y Stock → Registrar Movimiento:** ingreso, egreso o ajuste manual; el stock del producto se actualiza.
+7. Cerrar la aplicación y volver a abrirla: todo queda guardado en la base de datos MySQL.
 
 ## Estructura del proyecto
 
@@ -84,39 +83,31 @@ Seminario_S21/
     └── src/main/
         ├── java/
         │   ├── app/                 # MainApp (punto de entrada)
-        │   ├── config/              # ConexionDB (lee db.properties y abre las conexiones)
-        │   ├── controller/          # Controladores de cada módulo
+        │   ├── config/              # ConexionDB (gestión y prueba de conexiones MySQL)
+        │   ├── controller/          # Controladores (Login, Configuración DB, Clientes, etc.)
         │   ├── dao/                 # Interfaces DAO, implementaciones JDBC y Mock, DAOFactory y DAOException
         │   ├── model/               # Entidades del dominio
         │   ├── util/                # Validator y Dialogs
-        │   └── view/                # Pantallas Swing (y view/estilos)
+        │   └── view/                # Pantallas Swing y paquete view/estilos
         └── resources/
-            └── db.properties        # Configuración de conexión a MySQL
+            └── db.properties        # Configuración por defecto de MySQL
 ```
 
-## Diseño
+## Diseño y Arquitectura
 
-- **MVC:** las vistas (`view`) solo arman la interfaz, los controllers (`controller`) manejan los eventos y
-  coordinan, y el modelo (`model`) contiene las reglas del dominio.
-- **DAO + Factory:** cada entidad tiene una interfaz (`ClienteDAO`, `ProductoDAO`...) y su implementación
-  contra MySQL (`ClienteDAOJdbc`, `ProductoDAOJdbc`...). Los controllers dependen solo de las interfaces y
-  `DAOFactory` es el único lugar que decide qué implementación se entrega. Las clases `...Mock` (datos en
-  memoria) implementan las mismas interfaces, pero ya no se usan.
-- **Consultas parametrizadas:** todas las consultas usan `PreparedStatement`, nunca se concatena texto del
-  usuario en el SQL (evita inyección SQL).
-- **Transacciones:** las operaciones que modifican varias tablas se ejecutan en una sola transacción
-  (`commit` si todo sale bien, `rollback` si algo falla): confirmar una orden de venta, emitir una factura,
-  registrar un pago y registrar un movimiento de stock.
-- **Excepciones:** los errores de base de datos se envuelven en `DAOException`. Los controllers la atrapan
-  donde pueden dar un mensaje específico (por ejemplo, stock insuficiente) y `MainApp` muestra un mensaje
-  al usuario para cualquier otro caso.
+- **MVC (Modelo-Vista-Controlador):** las vistas (`view`) arman la interfaz gráfica Swing, los controladores (`controller`) gestionan los eventos y coordinan las acciones, y el modelo (`model`) encapsula las entidades y reglas de negocio.
+- **DAO + Factory:** cada entidad cuenta con su interfaz DAO (`ClienteDAO`, `ProductoDAO`, etc.) implementada contra MySQL vía JDBC (`ClienteDAOJdbc`, `ProductoDAOJdbc`...). Los controladores interactúan exclusivamente a través de las interfaces provistas por `DAOFactory`.
+- **Configuración Dinámica de Conexión:** pantalla dedicada para que evaluadores o usuarios configuren y prueben sus credenciales locales de MySQL en tiempo de ejecución.
+- **Consultas parametrizadas:** todas las operaciones hacia la base de datos emplean `PreparedStatement`, previniendo vulnerabilidades de inyección SQL.
+- **Manejo Transaccional:** las operaciones complejas que impactan múltiples tablas (confirmar orden, emitir factura, registrar cobranza, asentar movimientos de stock) se ejecutan bajo transacciones atómicas (`setAutoCommit(false)` con `commit` y `rollback`).
+- **Control de Excepciones:** los errores de base de datos se encapsulan en `DAOException`. En `MainApp` se cuenta además con un manejador global de excepciones no controladas (`setDefaultUncaughtExceptionHandler`) que garantiza feedback visual continuo al usuario sin cierres abruptos.
 
 ## Problemas frecuentes
 
 | Mensaje                                                                  | Qué hacer                                                                     |
 | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| `Access denied for user 'root'`                                          | La clave de MySQL no coincide: editar `db.properties` o usar `-Ddb.password`. |
+| `Access denied for user 'root'`                                          | Usar el botón **Configurar Base de Datos** en el Login para indicar tu usuario/clave. |
 | `Unknown database 'sistemamayoristadb'`                                  | Falta ejecutar `Database/schema.sql` (paso 1).                                |
-| `Communications link failure` / "No se pudo conectar a la base de datos" | MySQL no está en ejecución.                                                   |
+| `Communications link failure` / "No se pudo conectar a la base de datos" | Verificar que el servicio de MySQL esté iniciado en el equipo.               |
 | `no POM in this directory`                                               | Ejecutar Maven dentro de la carpeta `SistemaDistribucionMayorista`.           |
-| `mvn` no se reconoce como comando                                        | Instalar Maven y agregarlo al `PATH`.                                         |
+| `mvn` no se reconoce como comando                                        | Instalar Maven y verificar que esté en las variables de entorno (`PATH`).    |
